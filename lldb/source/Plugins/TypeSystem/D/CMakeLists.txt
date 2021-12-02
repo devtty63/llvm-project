@@ -1,5 +1,6 @@
 add_lldb_library(lldbPluginTypeSystemD PLUGIN
   TypeSystemD.cpp
+  DType.cpp
 
   LINK_LIBS
     lldbCore
