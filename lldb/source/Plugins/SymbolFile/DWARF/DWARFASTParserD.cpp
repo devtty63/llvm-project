@@ -7,6 +7,15 @@
 //===----------------------------------------------------------------------===//
 
 #include "DWARFASTParserD.h"
+#include "DWARFASTParserClang.h"
+#include "DWARFDebugInfo.h"
+#include "DWARFDeclContext.h"
+#include "DWARFDefines.h"
+#include "SymbolFileDWARF.h"
+#include "SymbolFileDWARFDebugMap.h"
+#include "SymbolFileDWARFDwo.h"
+#include "UniqueDWARFASTType.h"
+
 #include "Plugins/TypeSystem/D/TypeSystemD.h"
 
 using namespace lldb_private;
@@ -19,7 +28,88 @@ TypeSP DWARFASTParserD::ParseTypeFromDWARF(const SymbolContext &sc,
                                         const DWARFDIE &die,
                                         bool *type_is_new_ptr)
 {
-  return TypeSP();
+  if (type_is_new_ptr)
+    *type_is_new_ptr = false;
+
+  if (!die)
+    return nullptr;
+
+  // TODO: Add logging
+
+  SymbolFileDWARF *dwarf = die.GetDWARF();
+
+  Type *type_ptr = dwarf->GetDIEToType().lookup(die.GetDIE());
+  if (type_ptr == DIE_IS_BEING_PARSED)
+    return nullptr;
+
+  if (type_ptr)
+    return type_ptr->shared_from_this();
+  // Set a bit that lets us know that we are currently parsing this
+  dwarf->GetDIEToType()[die.GetDIE()] = DIE_IS_BEING_PARSED;
+
+  ParsedDWARFTypeAttributes attrs(die);
+
+  if (DWARFDIE signature_die = attrs.signature.Reference()) {
+    if (TypeSP type_sp =
+            ParseTypeFromDWARF(sc, signature_die, type_is_new_ptr)) {
+      dwarf->GetDIEToType()[die.GetDIE()] = type_sp.get();
+      return type_sp;
+    }
+    return nullptr;
+  }
+
+  if (type_is_new_ptr)
+    *type_is_new_ptr = true;
+
+  const dw_tag_t tag = die.Tag();
+
+  TypeSP type_sp;
+  switch(tag) {
+    case DW_TAG_base_type:
+      type_sp = ParseSimpleType(sc, die, attrs);
+      break;
+    case DW_TAG_typedef:
+    case DW_TAG_pointer_type:
+    case DW_TAG_reference_type:
+    case DW_TAG_rvalue_reference_type:
+    case DW_TAG_const_type:
+    case DW_TAG_restrict_type:
+    case DW_TAG_volatile_type:
+    case DW_TAG_atomic_type:
+    case DW_TAG_unspecified_type:
+      return type_sp = TypeSP();
+      break;
+
+    default: break;
+  }
+
+  // TODO: Use Update Symbol function
+  return UpdateSymbolContextScopeForType(sc, die, type_sp);
+}
+
+lldb::TypeSP
+DWARFASTParserD::ParseSimpleType(const lldb_private::SymbolContext &sc,
+                               const DWARFDIE &die,
+                               ParsedDWARFTypeAttributes &attrs)
+{
+  SymbolFileDWARF *dwarf = die.GetDWARF();
+  CompilerType cp_type;
+  Type::ResolveState resolve_state = Type::ResolveState::Unresolved;
+  Type::EncodingDataType encoding_data_type = Type::eEncodingIsUID;
+
+  const dw_tag_t tag = die.Tag();
+  switch(tag)
+  {
+    case DW_TAG_base_type:
+      cp_type = m_ast.GetBuiltinTypeForDWARFEncodingAndBitSize(
+          attrs.encoding, attrs.byte_size.getValueOr(0) * 8);
+      break;
+    default: break;
+  }
+  return std::make_shared<Type>(
+      die.GetID(), dwarf, attrs.name, attrs.byte_size, nullptr,
+      dwarf->GetUID(attrs.type.Reference()), encoding_data_type, &attrs.decl,
+      cp_type, resolve_state);
 }
 
 Function *

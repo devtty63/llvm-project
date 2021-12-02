@@ -77,6 +77,7 @@ public:
   friend class DWARFDIE;
   friend class DWARFASTParser;
   friend class DWARFASTParserClang;
+  friend class DWARFASTParserD;
 
   // Static Functions
   static void Initialize();

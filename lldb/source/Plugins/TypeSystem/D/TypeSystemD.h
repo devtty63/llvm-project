@@ -9,6 +9,8 @@
 #ifndef LLDB_SOURCE_PLUGINS_TYPESYSTEM_D_TYPESYSTEMD_H
 #define LLDB_SOURCE_PLUGINS_TYPESYSTEM_D_TYPESYSTEMD_H
 
+#include "DType.h"
+
 #include "lldb/Core/Module.h"
 #include "lldb/Symbol/TypeSystem.h"
 #include "lldb/Target/Target.h"
@@ -19,6 +21,8 @@
 namespace lldb_private {
 
 class TypeSystemD : public TypeSystem {
+  friend DWARFASTParserD;
+
   // LLVM RTTI support
   static char ID;
 
@@ -336,6 +340,11 @@ public:
                                           const size_t index) override;
 
 private:
+  CompilerType CreateBaseType(DTypeKind kind,
+                              const lldb_private::ConstString &name);
+
+  CompilerType GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size);
+
   std::unique_ptr<DWARFASTParserD> m_dwarf_ast_parser_up;
 };
 

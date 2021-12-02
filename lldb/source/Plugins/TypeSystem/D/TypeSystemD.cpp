@@ -540,4 +540,28 @@ bool TypeSystemD::DeclContextIsContainedInLookup(void *opaque_decl_ctx,
   return false;
 }
 
+CompilerType
+TypeSystemD::CreateBaseType(DTypeKind kind,
+                            const lldb_private::ConstString &name) {
+  DType *type = new DType(kind, name);
+  return CompilerType(this, type);
+}
+
+CompilerType
+TypeSystemD::GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size)
+{
+  //TODO: Use bit_size
+
+  switch(dw_ate)
+  {
+    case DW_ATE_boolean:
+      return CreateBaseType(eDTypeKindBool, ConstString("bool"));
+    default:
+      break;
+  }
+
+  // unknown suitable builtin type
+  return CompilerType();
+}
+
 } // namespace lldb_private
