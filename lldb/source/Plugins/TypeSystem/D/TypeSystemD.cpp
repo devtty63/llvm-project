@@ -360,13 +360,16 @@ TypeSystemD::GetIntegralTemplateArgument(lldb::opaque_compiler_type_t type,
 }
 
 CompilerType TypeSystemD::GetTypeForFormatters(void *type) {
-  return CompilerType();
+  if(!type)
+    return CompilerType();
+  return CompilerType(this, type);
 }
 
 llvm::Optional<size_t>
 TypeSystemD::GetTypeBitAlign(lldb::opaque_compiler_type_t type,
                              ExecutionContextScope *exe_scope) {
-  return llvm::None;
+  //TODO: Support types with different alignment
+  return 0;
 }
 
 uint32_t TypeSystemD::GetNumChildren(lldb::opaque_compiler_type_t type,
@@ -401,7 +404,7 @@ CompilerType TypeSystemD::GetCanonicalType(lldb::opaque_compiler_type_t type) {
 
 CompilerType
 TypeSystemD::GetFullyUnqualifiedType(lldb::opaque_compiler_type_t type) {
-  return CompilerType();
+  return CompilerType(this, type);
 }
 
 CompilerType
@@ -482,15 +485,24 @@ const llvm::fltSemantics &TypeSystemD::GetFloatTypeSemantics(size_t byte_size) {
 }
 
 bool TypeSystemD::GetCompleteType(lldb::opaque_compiler_type_t type) {
+  if (!type)
+    return false;
+  DType* dtype = static_cast<DType*>(type);
+  if (dtype->IsBuiltIn())
+    return true;
+
+  //TODO: Implement this for other kinds
   return false;
 }
 
 ConstString TypeSystemD::GetTypeName(lldb::opaque_compiler_type_t type) {
+  if (type)
+    return static_cast<DType*>(type)->GetName();
   return ConstString();
 }
 
 ConstString TypeSystemD::GetDisplayTypeName(lldb::opaque_compiler_type_t type) {
-  return ConstString();
+  return GetTypeName(type);
 }
 
 uint32_t
@@ -540,6 +552,30 @@ bool TypeSystemD::DeclContextIsClassMethod(
 bool TypeSystemD::DeclContextIsContainedInLookup(void *opaque_decl_ctx,
                                                  void *other_opaque_decl_ctx) {
   return false;
+}
+
+CompilerType
+TypeSystemD::CreateBaseType(DTypeKind kind,
+                            const lldb_private::ConstString &name) {
+  DType *type = new DType(kind, name);
+  return CompilerType(this, type);
+}
+
+CompilerType
+TypeSystemD::GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size)
+{
+  //TODO: Use bit_size
+
+  switch(dw_ate)
+  {
+    case DW_ATE_boolean:
+      return CreateBaseType(eDTypeKindBool, ConstString("bool"));
+    default:
+      break;
+  }
+
+  // unknown suitable builtin type
+  return CompilerType();
 }
 
 } // namespace lldb_private

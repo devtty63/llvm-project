@@ -50,6 +50,10 @@ public:
   void EnsureAllDIEsInDeclContextHaveBeenParsed(
       lldb_private::CompilerDeclContext decl_context) override;
 private:
+  lldb::TypeSP ParseSimpleType(const lldb_private::SymbolContext &sc,
+                               const DWARFDIE &die,
+                               ParsedDWARFTypeAttributes &attrs);
+
   lldb_private::TypeSystemD &m_ast;
 };
 
