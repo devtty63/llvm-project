@@ -8,8 +8,8 @@ on:
     branches:
       - ci
   schedule:
-    # Every five minutes
-    - cron:  '*/5 * * * *'
+    # Every hour
+    - cron:  '0 * * * *'
   workflow_dispatch:
 
 jobs:
