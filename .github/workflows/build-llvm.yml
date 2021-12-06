@@ -1,0 +1,44 @@
+name: ci/build-llvm
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  push:
+    branches:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{github.ref_name == 'ci'}}
+        name: Checkout main
+        uses: actions/checkout@v2
+        with:
+          ref: main
+      - if: ${{github.ref_name != 'ci'}}
+        name: Checkout ${{github.ref_name}}
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install \
+            build-essential swig python3-dev libedit-dev libncurses5-dev cmake ninja-build clang lld
+      - name: Prepare
+        run: |
+          CC=clang CXX=clang++ cmake -S llvm -B build -G Ninja \
+            -DCOMPILER_RT_BUILD_BUILTINS:BOOL=OFF \
+            -DCOMPILER_RT_BUILD_ORC:BOOL=OFF \
+            -DCOMPILER_RT_BUILD_SANITIZERS:BOOL=OFF \
+            -DCOMPILER_RT_BUILD_XRAY:BOOL=OFF \
+            -DCOMPILER_RT_INCLUDE_TESTS:BOOL=OFF \
+            '-DCMAKE_C_FLAGS=-Wdocumentation -Wno-documentation-deprecated-sync' \
+            '-DCMAKE_CXX_FLAGS=-std=c++11 -Wdocumentation -Wno-documentation-deprecated-sync' \
+            '-DLLVM_ENABLE_PROJECTS=clang;llvm;clang-tools-extra;compiler-rt' \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_ENABLE_ASSERTIONS=ON \
+            '-DLLVM_LIT_ARGS=-v -vv'
+      - name: Build
+        run: ninja -C build
