@@ -1382,35 +1382,6 @@ void DWARFASTParserClang::ParseInheritance(
   }
 }
 
-TypeSP DWARFASTParserClang::UpdateSymbolContextScopeForType(
-    const SymbolContext &sc, const DWARFDIE &die, TypeSP type_sp) {
-  if (!type_sp)
-    return type_sp;
-
-  SymbolFileDWARF *dwarf = die.GetDWARF();
-  DWARFDIE sc_parent_die = SymbolFileDWARF::GetParentSymbolContextDIE(die);
-  dw_tag_t sc_parent_tag = sc_parent_die.Tag();
-
-  SymbolContextScope *symbol_context_scope = nullptr;
-  if (sc_parent_tag == DW_TAG_compile_unit ||
-      sc_parent_tag == DW_TAG_partial_unit) {
-    symbol_context_scope = sc.comp_unit;
-  } else if (sc.function != nullptr && sc_parent_die) {
-    symbol_context_scope =
-        sc.function->GetBlock(true).FindBlockByID(sc_parent_die.GetID());
-    if (symbol_context_scope == nullptr)
-      symbol_context_scope = sc.function;
-  } else {
-    symbol_context_scope = sc.module_sp.get();
-  }
-
-  if (symbol_context_scope != nullptr)
-    type_sp->SetSymbolContextScope(symbol_context_scope);
-
-  dwarf->GetDIEToType()[die.GetDIE()] = type_sp.get();
-  return type_sp;
-}
-
 TypeSP
 DWARFASTParserClang::ParseStructureLikeDIE(const SymbolContext &sc,
                                            const DWARFDIE &die,
