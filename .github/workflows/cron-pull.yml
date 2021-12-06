@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - ci
+    paths:
+      - '.github/workflows/cron-pull.yml'
   pull_request:
     branches:
       - ci
+    paths:
+      - '.github/workflows/cron-pull.yml'
   schedule:
     # Every hour
     - cron:  '0 * * * *'
