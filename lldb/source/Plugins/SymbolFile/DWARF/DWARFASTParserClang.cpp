@@ -622,7 +622,6 @@ DWARFASTParserClang::ParseTypeModifier(const SymbolContext &sc,
       dwarf->GetUID(attrs.type.Reference()), encoding_data_type, &attrs.decl,
       clang_type, resolve_state, TypePayloadClang(GetOwningClangModule(die)));
 
-  dwarf->GetDIEToType()[die.GetDIE()] = type_sp.get();
   return type_sp;
 }
 
