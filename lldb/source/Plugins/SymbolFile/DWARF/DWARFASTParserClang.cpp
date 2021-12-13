@@ -412,7 +412,7 @@ DWARFASTParserClang::ParseTypeModifier(const SymbolContext &sc,
   const dw_tag_t tag = die.Tag();
   LanguageType cu_language = SymbolFileDWARF::GetLanguage(*die.GetCU());
   Type::ResolveState resolve_state = Type::ResolveState::Unresolved;
-  Type::EncodingDataType encoding_data_type = Type::eEncodingIsUID;
+  Type::EncodingDataType encoding_data_type = GetEncodingFromDWARFTypeTag(tag);
   TypeSP type_sp;
   CompilerType clang_type;
 
@@ -487,31 +487,6 @@ DWARFASTParserClang::ParseTypeModifier(const SymbolContext &sc,
     clang_type = m_ast.GetBuiltinTypeForDWARFEncodingAndBitSize(
         attrs.name.GetStringRef(), attrs.encoding,
         attrs.byte_size.getValueOr(0) * 8);
-    break;
-
-  case DW_TAG_pointer_type:
-    encoding_data_type = Type::eEncodingIsPointerUID;
-    break;
-  case DW_TAG_reference_type:
-    encoding_data_type = Type::eEncodingIsLValueReferenceUID;
-    break;
-  case DW_TAG_rvalue_reference_type:
-    encoding_data_type = Type::eEncodingIsRValueReferenceUID;
-    break;
-  case DW_TAG_typedef:
-    encoding_data_type = Type::eEncodingIsTypedefUID;
-    break;
-  case DW_TAG_const_type:
-    encoding_data_type = Type::eEncodingIsConstUID;
-    break;
-  case DW_TAG_restrict_type:
-    encoding_data_type = Type::eEncodingIsRestrictUID;
-    break;
-  case DW_TAG_volatile_type:
-    encoding_data_type = Type::eEncodingIsVolatileUID;
-    break;
-  case DW_TAG_atomic_type:
-    encoding_data_type = Type::eEncodingIsAtomicUID;
     break;
   }
 

@@ -16,6 +16,7 @@
 #include "lldb/Utility/ConstString.h"
 #include "lldb/Core/PluginInterface.h"
 #include "lldb/Symbol/SymbolFile.h"
+#include "lldb/Symbol/Type.h"
 #include "lldb/Symbol/CompilerDecl.h"
 #include "lldb/Symbol/CompilerDeclContext.h"
 #include "lldb/lldb-enumerations.h"
@@ -61,6 +62,8 @@ public:
                       const lldb_private::ExecutionContext *exe_ctx = nullptr);
 
   static lldb::AccessType GetAccessTypeFromDWARF(uint32_t dwarf_accessibility);
+
+  static lldb_private::Type::EncodingDataType GetEncodingFromDWARFTypeTag(dw_tag_t tag);
 
   /// If \p type_sp is valid, calculate and set its symbol context scope, and
   /// update the type list for its backing symbol file.
