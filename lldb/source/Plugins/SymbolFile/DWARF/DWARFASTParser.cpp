@@ -282,3 +282,27 @@ TypeSP DWARFASTParser::UpdateSymbolContextScopeForType(
   dwarf->GetDIEToType()[die.GetDIE()] = type_sp.get();
   return type_sp;
 }
+
+lldb_private::Type::EncodingDataType DWARFASTParser::GetEncodingFromDWARFTypeTag(dw_tag_t tag)
+{
+  switch(tag) {
+    case DW_TAG_pointer_type:
+      return Type::eEncodingIsPointerUID;
+    case DW_TAG_reference_type:
+      return Type::eEncodingIsLValueReferenceUID;
+    case DW_TAG_rvalue_reference_type:
+      return Type::eEncodingIsRValueReferenceUID;
+    case DW_TAG_typedef:
+      return Type::eEncodingIsTypedefUID;
+    case DW_TAG_const_type:
+      return Type::eEncodingIsConstUID;
+    case DW_TAG_restrict_type:
+      return Type::eEncodingIsRestrictUID;
+    case DW_TAG_volatile_type:
+      return Type::eEncodingIsVolatileUID;
+    case DW_TAG_atomic_type:
+      return Type::eEncodingIsAtomicUID;
+    default:
+      return Type::eEncodingIsUID;
+  }
+}
