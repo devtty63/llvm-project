@@ -392,7 +392,10 @@ CompilerType TypeSystemD::GetBuiltinTypeByName(ConstString name) {
 
 lldb::BasicType
 TypeSystemD::GetBasicTypeEnumeration(lldb::opaque_compiler_type_t type) {
-  return lldb::eBasicTypeInvalid;
+  if (!type)
+    return lldb::eBasicTypeInvalid;
+
+  return static_cast<DType*>(type)->GetBasicType();
 }
 
 CompilerType
