@@ -58,6 +58,7 @@ public:
   bool IsBuiltIn() const;
 
   lldb::Format GetFormat() const;
+  lldb::Encoding GetEncoding(uint64_t &count) const;
 
 private:
   DTypeKind m_kind;
