@@ -10,6 +10,7 @@
 #define LLDB_SOURCE_PLUGINS_TYPESYSTEM_D_DTYPE_H
 
 #include "lldb/Utility/ConstString.h"
+#include "lldb/lldb-enumerations.h"
 
 enum DTypeKind {
   eDTypeKindBool,
@@ -49,6 +50,8 @@ public:
   const ConstString &GetName() const { return m_name; }
 
   bool IsBasicType() const;
+
+  lldb::Format GetFormat() const;
 
 private:
   DTypeKind m_kind;
