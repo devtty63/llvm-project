@@ -263,7 +263,12 @@ TypeSystemD::GetBitSize(lldb::opaque_compiler_type_t type,
 
 lldb::Encoding TypeSystemD::GetEncoding(lldb::opaque_compiler_type_t type,
                                         uint64_t &count) {
-  return lldb::eEncodingInvalid;
+  if (!type) {
+    count = 0;
+    return lldb::eEncodingInvalid;
+  }
+
+  return static_cast<DType*>(type)->GetEncoding(count);
 }
 
 lldb::Format TypeSystemD::GetFormat(lldb::opaque_compiler_type_t type) {
