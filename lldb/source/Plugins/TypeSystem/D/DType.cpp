@@ -72,3 +72,55 @@ lldb::Encoding DType::GetEncoding(uint64_t &count) const {
     return lldb::eEncodingInvalid;
   }
 }
+
+lldb::BasicType DType::GetBasicType() const {
+  if(!IsBuiltIn())
+    return lldb::eBasicTypeOther;
+
+  switch (m_kind) {
+  case eDTypeKindVoid:
+    return lldb::eBasicTypeVoid;
+  case eDTypeKindBool:
+    return lldb::eBasicTypeBool;
+  case eDTypeKindByte:
+    return lldb::eBasicTypeSignedChar;
+  case eDTypeKindUByte:
+    return lldb::eBasicTypeUnsignedChar;
+  case eDTypeKindShort:
+    return lldb::eBasicTypeShort;
+  case eDTypeKindUShort:
+    return lldb::eBasicTypeUnsignedShort;
+  case eDTypeKindInt:
+    return lldb::eBasicTypeInt;
+  case eDTypeKindUInt:
+    return lldb::eBasicTypeUnsignedInt;
+  case eDTypeKindLong:
+    return lldb::eBasicTypeLong;
+  case eDTypeKindULong:
+    return lldb::eBasicTypeUnsignedLong;
+  case eDTypeKindCent:
+    return lldb::eBasicTypeInt128;
+  case eDTypeKindUCent:
+    return lldb::eBasicTypeUnsignedInt128;
+  case eDTypeKindChar:
+    return lldb::eBasicTypeChar8;
+  case eDTypeKindWChar:
+    return lldb::eBasicTypeChar16;
+  case eDTypeKindDChar:
+    return lldb::eBasicTypeChar32;
+  case eDTypeKindFloat:
+    return lldb::eBasicTypeFloat;
+  case eDTypeKindDouble:
+    return lldb::eBasicTypeDouble;
+  case eDTypeKindReal:
+    return lldb::eBasicTypeLongDouble;
+  case eDTypeKindCFloat:
+    return lldb::eBasicTypeFloatComplex;
+  case eDTypeKindCDouble:
+    return lldb::eBasicTypeDoubleComplex;
+  case eDTypeKindCReal:
+    return lldb::eBasicTypeLongDoubleComplex;
+  default:
+    return lldb::eBasicTypeOther;
+  }
+}

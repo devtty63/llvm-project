@@ -59,6 +59,7 @@ public:
 
   lldb::Format GetFormat() const;
   lldb::Encoding GetEncoding(uint64_t &count) const;
+  lldb::BasicType GetBasicType() const;
 
 private:
   DTypeKind m_kind;
