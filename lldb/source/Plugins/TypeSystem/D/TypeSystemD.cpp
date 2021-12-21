@@ -267,7 +267,10 @@ lldb::Encoding TypeSystemD::GetEncoding(lldb::opaque_compiler_type_t type,
 }
 
 lldb::Format TypeSystemD::GetFormat(lldb::opaque_compiler_type_t type) {
-  return lldb::eFormatDefault;
+  if (!type)
+    return lldb::eFormatDefault;
+
+  return static_cast<DType*>(type)->GetFormat();
 }
 
 lldb::TypeClass TypeSystemD::GetTypeClass(lldb::opaque_compiler_type_t type) {
