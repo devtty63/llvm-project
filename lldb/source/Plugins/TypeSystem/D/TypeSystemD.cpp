@@ -1,8 +1,10 @@
 #include "TypeSystemD.h"
 #include "lldb/lldb-enumerations.h"
 
+#include "lldb/Core/DumpDataExtractor.h"
 #include "lldb/Core/Module.h"
 #include "lldb/Core/PluginManager.h"
+#include "lldb/Core/StreamFile.h"
 #include "lldb/Symbol/Type.h"
 #include "lldb/Utility/ArchSpec.h"
 
@@ -84,7 +86,23 @@ void TypeSystemD::DumpValue(lldb::opaque_compiler_type_t type,
                             lldb::offset_t data_offset, size_t data_byte_size,
                             uint32_t bitfield_bit_size,
                             uint32_t bitfield_bit_offset, bool show_types,
-                            bool show_summary, bool verbose, uint32_t depth) {}
+                            bool show_summary, bool verbose, uint32_t depth) {
+  if (!type)
+    return;
+  DType *dtype = static_cast<DType*>(type);
+
+  switch(dtype->GetKind())
+  {
+    default:
+      // We are down to a scalar type that we just need to display.
+      DumpDataExtractor(data, s, data_offset, format, data_byte_size, 1,
+                        UINT32_MAX, LLDB_INVALID_ADDRESS, bitfield_bit_size,
+                        bitfield_bit_offset);
+
+      if (show_summary)
+          DumpSummary(type, exe_ctx, s, data, data_offset, data_byte_size);
+  }
+}
 
 bool TypeSystemD::DumpTypeValue(lldb::opaque_compiler_type_t type, Stream *s,
                                 lldb::Format format, const DataExtractor &data,
@@ -93,7 +111,13 @@ bool TypeSystemD::DumpTypeValue(lldb::opaque_compiler_type_t type, Stream *s,
                                 uint32_t bitfield_bit_size,
                                 uint32_t bitfield_bit_offset,
                                 ExecutionContextScope *exe_scope) {
-  return false;
+  if (!type)
+    return false;
+
+  uint32_t item_count = 1;
+  return DumpDataExtractor(data, s, data_offset, format, data_byte_size,
+                             item_count, UINT32_MAX, LLDB_INVALID_ADDRESS,
+                             bitfield_bit_size, bitfield_bit_offset, exe_scope);
 }
 
 void TypeSystemD::DumpSummary(lldb::opaque_compiler_type_t type,
@@ -103,7 +127,10 @@ void TypeSystemD::DumpSummary(lldb::opaque_compiler_type_t type,
                               size_t data_byte_size) {}
 
 void TypeSystemD::DumpTypeDescription(lldb::opaque_compiler_type_t type,
-                                      lldb::DescriptionLevel level) {}
+                                      lldb::DescriptionLevel level) {
+  StreamFile s(stdout, false);
+  DumpTypeDescription(type, &s, level);
+}
 
 void TypeSystemD::DumpTypeDescription(lldb::opaque_compiler_type_t type,
                                       Stream *s, lldb::DescriptionLevel level) {
