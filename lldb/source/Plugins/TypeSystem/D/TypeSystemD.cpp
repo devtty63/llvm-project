@@ -546,7 +546,56 @@ ConstString TypeSystemD::GetDisplayTypeName(lldb::opaque_compiler_type_t type) {
 uint32_t
 TypeSystemD::GetTypeInfo(lldb::opaque_compiler_type_t type,
                          CompilerType *pointee_or_element_compiler_type) {
-  return 0;
+  if (!type)
+    return 0;
+
+  DType* dtype = static_cast<DType*>(type);
+  uint32_t typeinfo_flags = 0;
+
+  if(dtype->IsBuiltIn())
+  {
+    typeinfo_flags = lldb::eTypeIsBuiltIn | lldb::eTypeHasValue;
+    switch(dtype->GetKind())
+    {
+      case eDTypeKindIFloat:
+      case eDTypeKindIDouble:
+      case eDTypeKindIReal:
+      case eDTypeKindCFloat:
+      case eDTypeKindCDouble:
+      case eDTypeKindCReal:
+        typeinfo_flags |= lldb::eTypeIsComplex;
+        LLVM_FALLTHROUGH;
+      case eDTypeKindFloat:
+      case eDTypeKindDouble:
+      case eDTypeKindReal:
+        typeinfo_flags |= lldb::eTypeIsFloat;
+        goto Lscalar;
+      case eDTypeKindByte:
+      case eDTypeKindShort:
+      case eDTypeKindInt:
+      case eDTypeKindLong:
+      case eDTypeKindCent:
+        typeinfo_flags |= lldb::eTypeIsSigned;
+        LLVM_FALLTHROUGH;
+      case eDTypeKindUByte:
+      case eDTypeKindUShort:
+      case eDTypeKindUInt:
+      case eDTypeKindULong:
+      case eDTypeKindUCent:
+        typeinfo_flags |= lldb::eTypeIsInteger;
+        LLVM_FALLTHROUGH;
+      case eDTypeKindBool:
+      case eDTypeKindChar:
+      case eDTypeKindWChar:
+      case eDTypeKindDChar:
+      Lscalar:
+        typeinfo_flags |= lldb::eTypeIsScalar;
+        break;
+      default:
+        break;
+    }
+  }
+  return typeinfo_flags;
 }
 
 uint32_t TypeSystemD::GetPointerByteSize() { return 0; }
