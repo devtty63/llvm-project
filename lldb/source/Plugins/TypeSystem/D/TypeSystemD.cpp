@@ -15,7 +15,7 @@ namespace lldb_private {
 // LLVM RTTI support
 char TypeSystemD::ID;
 
-TypeSystemD::TypeSystemD() = default;
+TypeSystemD::TypeSystemD(llvm::Triple target_triple) : m_target_triple(target_triple) {}
 
 TypeSystemD::~TypeSystemD() { Finalize(); }
 void TypeSystemD::Finalize() {}
@@ -59,8 +59,23 @@ lldb::TypeSystemSP TypeSystemD::CreateInstance(lldb::LanguageType language,
   if (!arch.IsValid())
     return lldb::TypeSystemSP();
 
+  llvm::Triple triple = arch.GetTriple();
+  // LLVM wants this to be set to iOS or MacOSX; if we're working on
+  // a bare-boards type image, change the triple for llvm's benefit.
+  if (triple.getVendor() == llvm::Triple::Apple &&
+      triple.getOS() == llvm::Triple::UnknownOS) {
+    if (triple.getArch() == llvm::Triple::arm ||
+        triple.getArch() == llvm::Triple::aarch64 ||
+        triple.getArch() == llvm::Triple::aarch64_32 ||
+        triple.getArch() == llvm::Triple::thumb) {
+      triple.setOS(llvm::Triple::IOS);
+    } else {
+      triple.setOS(llvm::Triple::MacOSX);
+    }
+  }
+
   if (module)
-    return std::shared_ptr<TypeSystemD>(new TypeSystemD);
+    return std::shared_ptr<TypeSystemD>(new TypeSystemD(triple));
 
   return lldb::TypeSystemSP();
 }

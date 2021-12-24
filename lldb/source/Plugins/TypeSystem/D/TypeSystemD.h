@@ -31,7 +31,7 @@ public:
   bool isA(const void *ClassID) const override { return ClassID == &ID; }
   static bool classof(const TypeSystem *ts) { return ts->isA(&ID); }
 
-  explicit TypeSystemD();
+  explicit TypeSystemD(llvm::Triple);
   ~TypeSystemD() override;
 
   void Finalize() override;
@@ -346,6 +346,7 @@ private:
   CompilerType GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size);
 
   std::unique_ptr<DWARFASTParserD> m_dwarf_ast_parser_up;
+  llvm::Triple m_target_triple;
 };
 
 } // namespace lldb_private
