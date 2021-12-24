@@ -178,3 +178,60 @@ llvm::Optional<uint64_t> DType::GetBitSize(llvm::Triple &target_triple) const {
       return llvm::None;
   }
 }
+
+ConstString DType::GetName(DTypeKind kind)
+{
+  switch(kind)
+  {
+  case eDTypeKindVoid:
+    return ConstString("void");
+  case eDTypeKindBool:
+    return ConstString("bool");
+  case eDTypeKindByte:
+    return ConstString("byte");
+  case eDTypeKindUByte:
+    return ConstString("ubyte");
+  case eDTypeKindShort:
+    return ConstString("short");
+  case eDTypeKindUShort:
+    return ConstString("ushort");
+  case eDTypeKindInt:
+    return ConstString("int");
+  case eDTypeKindUInt:
+    return ConstString("uint");
+  case eDTypeKindLong:
+    return ConstString("long");
+  case eDTypeKindULong:
+    return ConstString("ulong");
+  case eDTypeKindCent:
+    return ConstString("cent");
+  case eDTypeKindUCent:
+    return ConstString("ucent");
+  case eDTypeKindChar:
+    return ConstString("char");
+  case eDTypeKindWChar:
+    return ConstString("wchar");
+  case eDTypeKindDChar:
+    return ConstString("dchar");
+  case eDTypeKindFloat:
+    return ConstString("float");
+  case eDTypeKindDouble:
+    return ConstString("double");
+  case eDTypeKindReal:
+    return ConstString("real");
+  case eDTypeKindIFloat:
+    return ConstString("ifloat");
+  case eDTypeKindIDouble:
+    return ConstString("idouble");
+  case eDTypeKindIReal:
+    return ConstString("ireal");
+  case eDTypeKindCFloat:
+    return ConstString("cfloat");
+  case eDTypeKindCDouble:
+    return ConstString("cdouble");
+  case eDTypeKindCReal:
+    return ConstString("creal");
+    default:
+      return ConstString();
+  }
+}

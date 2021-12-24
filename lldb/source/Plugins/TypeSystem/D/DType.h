@@ -56,6 +56,7 @@ public:
 
   DTypeKind GetKind() { return m_kind; }
   const ConstString &GetName() const { return m_name; }
+  static ConstString GetName(DTypeKind);
 
   bool IsBuiltIn() const;
 

@@ -342,6 +342,7 @@ public:
 private:
   CompilerType CreateBaseType(DTypeKind kind,
                               const lldb_private::ConstString &name);
+  CompilerType CreateBaseType(DTypeKind kind);
 
   CompilerType GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size);
 
