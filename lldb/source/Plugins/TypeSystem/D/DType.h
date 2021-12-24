@@ -11,6 +11,8 @@
 
 #include "lldb/Utility/ConstString.h"
 #include "lldb/lldb-enumerations.h"
+#include "llvm/ADT/APInt.h"
+#include "llvm/ADT/Triple.h"
 
 enum DTypeKind : uint8_t {
   eDTypeKindInvalid = 0,
@@ -60,6 +62,9 @@ public:
   lldb::Format GetFormat() const;
   lldb::Encoding GetEncoding(uint64_t &count) const;
   lldb::BasicType GetBasicType() const;
+
+  static llvm::Optional<uint64_t> GetBitSize(DTypeKind kind, llvm::Triple &target_triple);
+  llvm::Optional<uint64_t> GetBitSize(llvm::Triple &target_triple) const;
 
 private:
   DTypeKind m_kind;
