@@ -285,7 +285,10 @@ CompilerType TypeSystemD::GetBasicTypeFromAST(lldb::BasicType basic_type) {
 llvm::Optional<uint64_t>
 TypeSystemD::GetBitSize(lldb::opaque_compiler_type_t type,
                         ExecutionContextScope *exe_scope) {
-  return llvm::None;
+  if(!GetCompleteType(type))
+    return llvm::None;
+
+  return static_cast<DType*>(type)->GetBitSize(m_target_triple);
 }
 
 lldb::Encoding TypeSystemD::GetEncoding(lldb::opaque_compiler_type_t type,

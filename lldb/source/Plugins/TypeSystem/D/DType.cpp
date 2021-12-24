@@ -124,3 +124,57 @@ lldb::BasicType DType::GetBasicType() const {
     return lldb::eBasicTypeOther;
   }
 }
+
+static uint64_t GetRealBitSize(llvm::Triple &target_triple) {
+  if (target_triple.isX86() && target_triple.isArch64Bit())
+    // Assume x87 support: x87 FPU register size
+    return 80;
+
+  // at least size of a double type kind
+  return 64;
+}
+
+llvm::Optional<uint64_t> DType::GetBitSize(llvm::Triple &target_triple) const {
+  switch(m_kind)
+  {
+    case eDTypeKindPtr:
+      if (target_triple.isArch64Bit())
+        return 64;
+      if (target_triple.isArch32Bit())
+        return 32;
+      if (target_triple.isArch16Bit())
+        return 16;
+
+      // unknown arch bit size
+      return llvm::None;
+    case eDTypeKindBool:
+    case eDTypeKindByte:
+    case eDTypeKindUByte:
+    case eDTypeKindChar:
+      return 8;
+    case eDTypeKindShort:
+    case eDTypeKindUShort:
+    case eDTypeKindWChar:
+      return 16;
+    case eDTypeKindInt:
+    case eDTypeKindUInt:
+    case eDTypeKindDChar:
+    case eDTypeKindFloat:
+      return 32;
+    case eDTypeKindLong:
+    case eDTypeKindULong:
+    case eDTypeKindDouble:
+    case eDTypeKindCFloat:
+      return 64;
+    case eDTypeKindCent:
+    case eDTypeKindUCent:
+    case eDTypeKindCDouble:
+      return 128;
+    case eDTypeKindReal:
+      return GetRealBitSize(target_triple);
+    case eDTypeKindCReal:
+      return GetRealBitSize(target_triple) * 2;
+    default:
+      return llvm::None;
+  }
+}
