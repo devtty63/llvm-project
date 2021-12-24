@@ -667,6 +667,12 @@ TypeSystemD::CreateBaseType(DTypeKind kind,
 }
 
 CompilerType
+TypeSystemD::CreateBaseType(DTypeKind kind) {
+  DType *type = new DType(kind, DType::GetName(kind));
+  return CompilerType(this, type);
+}
+
+CompilerType
 TypeSystemD::GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size)
 {
   //TODO: Use bit_size
@@ -674,7 +680,7 @@ TypeSystemD::GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t 
   switch(dw_ate)
   {
     case DW_ATE_boolean:
-      return CreateBaseType(eDTypeKindBool, ConstString("bool"));
+      return CreateBaseType(eDTypeKindBool);
     default:
       break;
   }
