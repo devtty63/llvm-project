@@ -38,12 +38,18 @@ enum DTypeKind : uint8_t {
   eDTypeKindFloat,
   eDTypeKindDouble,
   eDTypeKindReal,
+  eDTypeKindReal64,
+  eDTypeKindReal80,
+  eDTypeKindReal128,
   eDTypeKindIFloat,
   eDTypeKindIDouble,
   eDTypeKindIReal,
   eDTypeKindCFloat,
   eDTypeKindCDouble,
   eDTypeKindCReal,
+  eDTypeKindCReal64,
+  eDTypeKindCReal80,
+  eDTypeKindCReal128,
   eDTypeKindMax,
 };
 

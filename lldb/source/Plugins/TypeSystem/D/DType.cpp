@@ -37,6 +37,9 @@ lldb::Format DType::GetFormat() const {
   case eDTypeKindFloat:
   case eDTypeKindDouble:
   case eDTypeKindReal:
+  case eDTypeKindReal64:
+  case eDTypeKindReal80:
+  case eDTypeKindReal128:
     return lldb::eFormatFloat;
   case eDTypeKindVoid:
     return lldb::eFormatVoid;
@@ -67,6 +70,9 @@ lldb::Encoding DType::GetEncoding(uint64_t &count) const {
   case eDTypeKindFloat:
   case eDTypeKindDouble:
   case eDTypeKindReal:
+  case eDTypeKindReal64:
+  case eDTypeKindReal80:
+  case eDTypeKindReal128:
     return lldb::eEncodingIEEE754;
   default:
     count = 0;
@@ -114,12 +120,18 @@ lldb::BasicType DType::GetBasicType() const {
   case eDTypeKindDouble:
     return lldb::eBasicTypeDouble;
   case eDTypeKindReal:
+  case eDTypeKindReal64:
+  case eDTypeKindReal80:
+  case eDTypeKindReal128:
     return lldb::eBasicTypeLongDouble;
   case eDTypeKindCFloat:
     return lldb::eBasicTypeFloatComplex;
   case eDTypeKindCDouble:
     return lldb::eBasicTypeDoubleComplex;
   case eDTypeKindCReal:
+  case eDTypeKindCReal64:
+  case eDTypeKindCReal80:
+  case eDTypeKindCReal128:
     return lldb::eBasicTypeLongDoubleComplex;
   default:
     return lldb::eBasicTypeOther;
@@ -175,11 +187,20 @@ llvm::Optional<uint64_t> DType::GetBitSize(DTypeKind kind, llvm::Triple &target_
     case eDTypeKindULong:
     case eDTypeKindDouble:
     case eDTypeKindCFloat:
+    case eDTypeKindReal64:
       return 64;
+    case eDTypeKindReal80:
+      return 80;
     case eDTypeKindCent:
     case eDTypeKindUCent:
     case eDTypeKindCDouble:
+    case eDTypeKindReal128:
+    case eDTypeKindCReal64:
       return 128;
+    case eDTypeKindCReal80:
+      return 160;
+    case eDTypeKindCReal128:
+      return 256;
     case eDTypeKindReal:
       return GetRealBitSize(target_triple);
     case eDTypeKindCReal:
@@ -230,6 +251,9 @@ ConstString DType::GetName(DTypeKind kind)
   case eDTypeKindDouble:
     return ConstString("double");
   case eDTypeKindReal:
+  case eDTypeKindReal64:
+  case eDTypeKindReal80:
+  case eDTypeKindReal128:
     return ConstString("real");
   case eDTypeKindIFloat:
     return ConstString("ifloat");
@@ -242,6 +266,9 @@ ConstString DType::GetName(DTypeKind kind)
   case eDTypeKindCDouble:
     return ConstString("cdouble");
   case eDTypeKindCReal:
+  case eDTypeKindCReal64:
+  case eDTypeKindCReal80:
+  case eDTypeKindCReal128:
     return ConstString("creal");
     default:
       return ConstString();
