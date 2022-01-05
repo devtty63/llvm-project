@@ -102,6 +102,7 @@ DWARFASTParserD::ParseSimpleType(const lldb_private::SymbolContext &sc,
   {
     case DW_TAG_base_type:
       cp_type = m_ast.GetBuiltinTypeForDWARFEncodingAndBitSize(
+          attrs.name.GetStringRef(),
           attrs.encoding, attrs.byte_size.getValueOr(0) * 8);
       break;
     default: break;

@@ -344,7 +344,7 @@ private:
                               const lldb_private::ConstString &name);
   CompilerType CreateBaseType(DTypeKind kind);
 
-  CompilerType GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size);
+  CompilerType GetBuiltinTypeForDWARFEncodingAndBitSize(llvm::StringRef type_name, uint32_t dw_ate, uint32_t bit_size);
 
   std::unique_ptr<DWARFASTParserD> m_dwarf_ast_parser_up;
   llvm::Triple m_target_triple;

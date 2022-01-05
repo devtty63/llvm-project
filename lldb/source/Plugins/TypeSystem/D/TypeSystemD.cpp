@@ -7,6 +7,7 @@
 #include "lldb/Core/StreamFile.h"
 #include "lldb/Symbol/Type.h"
 #include "lldb/Utility/ArchSpec.h"
+#include "llvm/ADT/StringSwitch.h"
 
 LLDB_PLUGIN_DEFINE(TypeSystemD)
 
@@ -673,7 +674,7 @@ TypeSystemD::CreateBaseType(DTypeKind kind) {
 }
 
 CompilerType
-TypeSystemD::GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t bit_size)
+TypeSystemD::GetBuiltinTypeForDWARFEncodingAndBitSize(llvm::StringRef type_name, uint32_t dw_ate, uint32_t bit_size)
 {
   auto IsMatch = [&](DTypeKind kind) {
     llvm::Optional<uint64_t> BS = DType::GetBitSize(kind, m_target_triple);
@@ -685,9 +686,113 @@ TypeSystemD::GetBuiltinTypeForDWARFEncodingAndBitSize(uint32_t dw_ate, uint32_t 
 
   switch(dw_ate)
   {
+    case DW_ATE_address:
+      if (IsMatch(eDTypeKindPtr))
+        return CreateBaseType(eDTypeKindPtr);
+      break;
+
     case DW_ATE_boolean:
       if (IsMatch(eDTypeKindBool))
         return CreateBaseType(eDTypeKindBool);
+      break;
+
+    case DW_ATE_complex_float:
+      if (IsMatch(eDTypeKindCFloat))
+        return CreateBaseType(eDTypeKindCFloat);
+      // check for creal and complex long double type name to be backward
+      // compatible with old DMD backend.
+      if (!type_name.empty() && (type_name == "creal" || type_name == "complex long double"))
+      {
+        if (IsMatch(eDTypeKindCReal80))
+          return CreateBaseType(eDTypeKindCReal80);
+        if (IsMatch(eDTypeKindCReal128))
+          return CreateBaseType(eDTypeKindCReal128);
+        if (IsMatch(eDTypeKindCReal64))
+          return CreateBaseType(eDTypeKindCReal64);
+        // fallback to ABI-specific bit size
+        if (IsMatch(eDTypeKindCReal))
+          return CreateBaseType(eDTypeKindCReal);
+      }
+
+      if (IsMatch(eDTypeKindCDouble))
+        return CreateBaseType(eDTypeKindCDouble);
+      break;
+
+    case DW_ATE_float:
+      if (IsMatch(eDTypeKindFloat))
+        return CreateBaseType(eDTypeKindFloat);
+      // check for real and long double type name to be backward compatible
+      // with old DMD backend.
+      if (!type_name.empty() && (type_name == "real" || type_name == "long double"))
+      {
+        if (IsMatch(eDTypeKindReal80))
+          return CreateBaseType(eDTypeKindReal80);
+        if (IsMatch(eDTypeKindReal128))
+          return CreateBaseType(eDTypeKindReal128);
+        if (IsMatch(eDTypeKindReal64))
+          return CreateBaseType(eDTypeKindReal64);
+        // fallback to ABI-specific bit size
+        if (IsMatch(eDTypeKindReal))
+          return CreateBaseType(eDTypeKindReal);
+      }
+
+      if (IsMatch(eDTypeKindDouble))
+        return CreateBaseType(eDTypeKindDouble);
+      break;
+
+    case DW_ATE_signed:
+      if (IsMatch(eDTypeKindByte))
+        return CreateBaseType(eDTypeKindByte);
+      if (IsMatch(eDTypeKindShort))
+        return CreateBaseType(eDTypeKindShort);
+      if (IsMatch(eDTypeKindInt))
+        return CreateBaseType(eDTypeKindInt);
+      if (IsMatch(eDTypeKindLong))
+        return CreateBaseType(eDTypeKindLong);
+      if (IsMatch(eDTypeKindCent))
+        return CreateBaseType(eDTypeKindCent);
+      break;
+    case DW_ATE_signed_char:
+      if (IsMatch(eDTypeKindByte))
+        return CreateBaseType(eDTypeKindByte);
+      break;
+    case DW_ATE_unsigned:
+      if (IsMatch(eDTypeKindUByte))
+        return CreateBaseType(eDTypeKindUByte);
+      if (IsMatch(eDTypeKindUShort))
+        return CreateBaseType(eDTypeKindUShort);
+      if (IsMatch(eDTypeKindUInt))
+        return CreateBaseType(eDTypeKindUInt);
+      if (IsMatch(eDTypeKindULong))
+        return CreateBaseType(eDTypeKindULong);
+      if (IsMatch(eDTypeKindUCent))
+        return CreateBaseType(eDTypeKindUCent);
+      break;
+    case DW_ATE_unsigned_char:
+      if (IsMatch(eDTypeKindUByte))
+        return CreateBaseType(eDTypeKindUByte);
+      break;
+    case DW_ATE_UTF:
+      switch(bit_size) {
+        case 8: // UTF-8
+          return CreateBaseType(eDTypeKindChar);
+        case 16: // UTF-16
+          return CreateBaseType(eDTypeKindWChar);
+        case 32: // UTF-32
+          return CreateBaseType(eDTypeKindDChar);
+      }
+      if (!type_name.empty())
+      {
+        // use a string switch with backward compatible type names
+        DTypeKind kind = llvm::StringSwitch<DTypeKind>(type_name)
+          .Cases("char8_t", "char", eDTypeKindChar)
+          .Cases("char16_t", "wchar_t", "wchar", eDTypeKindWChar)
+          .Cases("char32_t", "dchar", eDTypeKindDChar)
+          .Default(eDTypeKindInvalid);
+
+        if (kind != eDTypeKindInvalid)
+          return CreateBaseType(kind);
+      }
       break;
     default:
       break;
