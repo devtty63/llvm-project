@@ -324,7 +324,7 @@ if( LLVM_ENABLE_PIC )
   endif()
   # GCC for MIPS can miscompile LLVM due to PR37701.
   if(CMAKE_COMPILER_IS_GNUCXX AND LLVM_NATIVE_ARCH STREQUAL "Mips" AND
-         NOT Uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+         NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
     add_flag_or_print_warning("-fno-shrink-wrap" FNO_SHRINK_WRAP)
   endif()
   # gcc with -O3 -fPIC generates TLS sequences that violate the spec on
