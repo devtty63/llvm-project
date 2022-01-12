@@ -316,9 +316,9 @@ if( LLVM_ENABLE_PIC )
     # Older Clang may support -fno-semantic-interposition but it used local
     # aliases to optimize global variables, which is incompatible with copy
     # relocations due to -fno-pic.
-    if ((CMAKE_COMPILER_IS_GNUCXX AND
+    if (NOT uppercase_CMAKE_BUILD_TYPE STREQUAL "DEBUG" AND ((CMAKE_COMPILER_IS_GNUCXX AND
          NOT (LLVM_NATIVE_ARCH STREQUAL "SystemZ" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.3))
-       OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 13))
+       OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 13)))
       add_flag_if_supported("-fno-semantic-interposition" FNO_SEMANTIC_INTERPOSITION)
     endif()
   endif()
