@@ -54,6 +54,12 @@ private:
                                const DWARFDIE &die,
                                ParsedDWARFTypeAttributes &attrs);
 
+  lldb::TypeSP ParseDerivedType(const lldb_private::SymbolContext &sc,
+                               const DWARFDIE &die,
+                               ParsedDWARFTypeAttributes &attrs);
+  lldb::TypeSP ParseTypeFromModule(const lldb_private::SymbolContext &sc,
+                                const DWARFDIE &die);
+
   lldb_private::TypeSystemD &m_ast;
 };
 

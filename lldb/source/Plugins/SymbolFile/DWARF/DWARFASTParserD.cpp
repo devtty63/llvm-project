@@ -8,6 +8,7 @@
 
 #include "DWARFASTParserD.h"
 #include "DWARFASTParserClang.h"
+#include "DWARFASTParser.h"
 #include "DWARFDebugInfo.h"
 #include "DWARFDeclContext.h"
 #include "DWARFDefines.h"
@@ -69,6 +70,8 @@ TypeSP DWARFASTParserD::ParseTypeFromDWARF(const SymbolContext &sc,
       type_sp = ParseSimpleType(sc, die, attrs);
       break;
     case DW_TAG_typedef:
+      type_sp = ParseDerivedType(sc, die, attrs);
+      break;
     case DW_TAG_pointer_type:
     case DW_TAG_reference_type:
     case DW_TAG_rvalue_reference_type:
@@ -94,22 +97,52 @@ DWARFASTParserD::ParseSimpleType(const lldb_private::SymbolContext &sc,
 {
   SymbolFileDWARF *dwarf = die.GetDWARF();
   CompilerType cp_type;
-  Type::ResolveState resolve_state = Type::ResolveState::Unresolved;
-  Type::EncodingDataType encoding_data_type = Type::eEncodingIsUID;
 
-  const dw_tag_t tag = die.Tag();
-  switch(tag)
-  {
-    case DW_TAG_base_type:
-      cp_type = m_ast.GetBuiltinTypeForDWARFEncodingAndBitSize(
-          attrs.name.GetStringRef(),
-          attrs.encoding, attrs.byte_size.getValueOr(0) * 8);
-      break;
-    default: break;
-  }
+  cp_type = m_ast.GetBuiltinTypeForDWARFEncodingAndBitSize(
+      attrs.name.GetStringRef(),
+      attrs.encoding, attrs.byte_size.getValueOr(0) * 8);
+
   return std::make_shared<Type>(
       die.GetID(), dwarf, attrs.name, attrs.byte_size, nullptr,
-      dwarf->GetUID(attrs.type.Reference()), encoding_data_type, &attrs.decl,
+      dwarf->GetUID(attrs.type.Reference()), Type::eEncodingIsUID, &attrs.decl,
+      cp_type, Type::ResolveState::Full);
+}
+
+
+TypeSP
+DWARFASTParserD::ParseTypeFromModule(const lldb_private::SymbolContext &sc,
+                                const DWARFDIE &die) {
+  return TypeSP();
+}
+
+lldb::TypeSP
+DWARFASTParserD::ParseDerivedType(const lldb_private::SymbolContext &sc,
+                               const DWARFDIE &die,
+                               ParsedDWARFTypeAttributes &attrs) {
+  SymbolFileDWARF *dwarf = die.GetDWARF();
+  const dw_tag_t tag = die.Tag();
+  CompilerType cp_type;
+  Type::ResolveState resolve_state = Type::ResolveState::Unresolved;
+
+  switch(tag) {
+    case DW_TAG_typedef: {
+      const DWARFDIE encoding_die = attrs.type.Reference();
+      if (encoding_die &&
+          encoding_die.GetAttributeValueAsUnsigned(DW_AT_declaration, 0) == 1) {
+        TypeSP type_sp = ParseTypeFromModule(sc, die);
+        if (type_sp)
+          return type_sp;
+      }
+
+      break;
+    }
+    default:
+      break;
+  }
+
+  return std::make_shared<Type>(
+      die.GetID(), dwarf, attrs.name, attrs.byte_size, nullptr,
+      dwarf->GetUID(attrs.type.Reference()), GetEncodingFromDWARFTypeTag(tag), &attrs.decl,
       cp_type, resolve_state);
 }
 
